@@ -32,12 +32,22 @@ namespace HyperVStatusMon.Controllers
         public IEnumerable<string> Get()
         {
             DateTime last, timer;
+            List<Status> statii;
+
             _memoryCache.TryGetValue("LastUpdated", out last);
             _memoryCache.TryGetValue("Timer", out timer);
-            if (last != DateTime.MinValue)
-                last = TimeZoneInfo.ConvertTime(last, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"));
+            _memoryCache.TryGetValue("Statii", out statii);
 
-            return new string[] { "HyperV Replication Monitor", String.Format("Last updated {0}", last == DateTime.MinValue ? "never" : last.ToString()), String.Format("Timer {0}", timer == DateTime.MinValue ? "off" : "on") };
+            if (last != DateTime.MinValue) last = DateHelpers.GetLocalDateTime(last);
+            if (statii == null) statii = new List<Status>();
+            int probsOutstanding = statii.Where(s => s.IsRecovered == false).Count();
+
+            return new string[] {
+                "HyperV Replication Monitor",
+                String.Format("Last updated {0}", last == DateTime.MinValue ? "never" : last.ToString()),
+                String.Format("{0} problems outstanding", probsOutstanding),
+                String.Format("Timer {0}", timer == DateTime.MinValue ? "off" : "on")
+            };
         }
 
         [HttpPost]
@@ -46,7 +56,7 @@ namespace HyperVStatusMon.Controllers
             if (data == null) return "null";
             JArray jsonData = JArray.Parse(data.ToString());
 
-            var numProblems = await ReplicationHelpers.DoStatusChecks(jsonData, _config.Replication, _config.Email);
+            var numProblems = await ReplicationHelpers.DoStatusChecks(jsonData, _config.Replication, _config.Email, _memoryCache);
 
             // do a timer for 15s more than configured minutes to see if the status update was NOT received from the host
             // we create the timer by adding an item to the cache and setting a callback on expiry           
