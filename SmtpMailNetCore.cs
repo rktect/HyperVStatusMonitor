@@ -53,7 +53,8 @@ namespace HyperVStatusMon
                         //if (certificate is X509Certificate2 && ((X509Certificate2) certificate).Thumbprint == "71DFBE124D89ED9218F539A82D4127FBB4BC9997") return true;
                     };
                     await client.ConnectAsync(this.Server, this.Port, SecureSocketOptions.StartTls).ConfigureAwait(false);
-                    await client.AuthenticateAsync(this.User, this.Password).ConfigureAwait(false);
+                    if (this.User.Length > 0)
+                        await client.AuthenticateAsync(this.User, this.Password).ConfigureAwait(false);
                     await client.SendAsync(emailMessage).ConfigureAwait(false);
                     await client.DisconnectAsync(true).ConfigureAwait(false);
                 }
