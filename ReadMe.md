@@ -23,7 +23,7 @@ To remain as secure as possible, the solution uses a 'push' scenario from the Hy
 The application consists of two components:
 
 1. A **powershell script** on the host which runs on a predetermined interval using Task Scheduler. Since this script calls 'out' on port 80 (or 443 for HTTPS) your firewall will need to permit outgoing requests from the machine running this script. Tested in Powershell 3+. 
-2. A **web application** hosted at Azure or another geo-independent location from the host machine. This ensures problems can be detected and notifications sent even if the host goes down. This is built in the new ASP.NET Core 1.0 (1.0.0-rc1-final) so it can literally be compiled and run on any platform.
+2. A **web application** hosted at Azure or another geo-independent location from the host machine. This ensures problems can be detected and notifications sent even if the host goes down. This is built in the new ASP.NET Core 1.0 (1.0.0-rc1-final) so it can be compiled and run on any platform.
 
 The notification structure uses "Problem" and "Recovery" logic. So you are only notified of each problem once, instead of repeatedly getting "Problem" emails every status check interval. The system will send you a "Recovery" as each problem is resolved - including a note about how many problems are unresolved.
 
@@ -46,7 +46,7 @@ The notification structure uses "Problem" and "Recovery" logic. So you are only 
 		Change:
 		$json = Measure-VMReplication | ConvertTo-Json -Compress
 		To:
-		$json = Measure-VMReplication -ComputerName {primary-server-IP-or-name} | ConvertTo-Json -Compress
+		$json = Measure-VMReplication -ComputerName {primary-server-name} | ConvertTo-Json -Compress
 
 	You can test this script by running it with appropriate permissions in Powershell. In your Powershell test, you will see the Response data which shows a 200-OK status if it submitted successfully. Under "Content", you will see "ok-{number of VMs checked}-{number of problems found}" to tell you what was processed and the outcome of the status condition logic. 
 6. Set the script to run on an interval using Task Scheduler > Add a new task. 

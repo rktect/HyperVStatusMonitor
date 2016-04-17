@@ -18,17 +18,26 @@ namespace HyperVStatusMon
                 memoryCache.TryGetValue("Statii", out statii);
                 if (statii == null) statii = new List<Status>();
 
+                // see if we have a host recovery
+                bool hostMissed;
+                memoryCache.TryGetValue("HostIntervalMissed", out hostMissed);
+                if (hostMissed)
+                {
+                    memoryCache.Set("HostIntervalMissed", false, new MemoryCacheEntryOptions().SetPriority(CacheItemPriority.NeverRemove));
+                    statii.Add(new Status() { VmName = "_Primary Host", ProblemType = "HostCommunication", Message = "Primary host is communicating", IsRecovered = true });
+                }
+
                 foreach (JObject o in data)
                 {
                     string vm = (string)o["VMName"];
 
                     ReplicationHealth health;
                     Enum.TryParse((string)o["ReplicationHealth"], out health);
-                    ReplicationHelpers.ConditionalAddStatus(health != ReplicationHealth.Normal, ref statii, vm, "ReplicationHealth", String.Format("ReplicationHealth is {0}", health.ToString()));
+                    ReplicationHelpers.ConditionalAddStatus(health != ReplicationHealth.Normal, ref statii, vm, "ReplicationHealth", String.Format("Replication Health is {0}", health.ToString()));
 
                     ReplicationState state;
                     Enum.TryParse((string)o["ReplicationState"], out state);
-                    ReplicationHelpers.ConditionalAddStatus(state != ReplicationState.Replicating, ref statii, vm, "ReplicationState", String.Format("ReplicationState is {0}", state.ToString()));
+                    ReplicationHelpers.ConditionalAddStatus(state != ReplicationState.Replicating, ref statii, vm, "ReplicationState", String.Format("Replication State is {0}", state.ToString()));
 
                     int latency = (int)o["AverageReplicationLatency"]["TotalSeconds"];
                     ReplicationHelpers.ConditionalAddStatus(latency > repSettings.LatencyThresholdSeconds, ref statii, vm, "AverageReplicationLatency", String.Format("Avg latency {0} above threshold of {1}", latency, repSettings.LatencyThresholdSeconds));
@@ -44,10 +53,11 @@ namespace HyperVStatusMon
                 }
 
                 statii.Sort((x, y) => x.VmName.CompareTo(y.VmName));
+
+                // send notifications for any new problems (count == 1) or any recoveries - we don't notify multiple times about problems already notified
                 var notifications = statii.Where(s => s.Count == 1 || s.IsRecovered == true).ToList();
                 if (notifications.Count() > 0)
                 {
-                    // send notifications for any new problems (count == 1) or any recoveries - we don't notify multiple times about problems already notified
                     int probsOutstanding = statii.Where(s => s.IsRecovered == false).Count();
                     string msg = "<table style='padding: 5px'><tr>" + string.Join("</tr><tr>", notifications) + "</tr></table>";
 

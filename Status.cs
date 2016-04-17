@@ -11,7 +11,7 @@ namespace HyperVStatusMon
         {
             this.IsRecovered = false;
             this.Count = 1;
-            this.Start = DateHelpers.GetLocalDateTime(DateTime.Now);
+            this.Start = DateTime.Now;
         }
 
         public string VmName { get; set; }
@@ -23,7 +23,7 @@ namespace HyperVStatusMon
 
         public override string ToString()
         {
-            return String.Format("<td>{0}</td><td>{1}</td><td>{2} since {3}</td>", this.IsRecovered ? "Recovery" : "Problem", VmName, Message, Start.ToString());
+            return String.Format("<td>{0}</td><td>{1}</td><td>{2}</td>", this.IsRecovered ? "Recovery" : "Problem", VmName, Message);
         }
     }
 }
