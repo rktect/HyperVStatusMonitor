@@ -70,6 +70,8 @@ The notification structure uses "Problem" and "Recovery" logic. So you are only 
 
 And that is it. If your web app is hosted at Azure, you can see the API being called on the duration you configured in the portal. You can also see the task status in Task Scheduler but I've noticed that it can say "successful" when running powershell scripts that actually didn't fully run for whatever permission or connectivity issue.
 
+**Note:** If you are hosting your web app in Azure or another location where the timezone is UTC or other, you can adjust the notification timezone setting in DateHelpers.cs to what zone you are in. 
+
 
 ## Requirements ##
 
