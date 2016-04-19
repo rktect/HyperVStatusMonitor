@@ -10,7 +10,8 @@ namespace HyperVStatusMon
         public static DateTime GetLocalDateTime(DateTime dt)
         {
             // TODO: grab desired timezone from config
-            return TimeZoneInfo.ConvertTime(dt, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"));
+            // In Azure, you can also set an App Setting called "WEBSITE_TIME_ZONE" to the timezone id you want instead of this application logic
+            return TimeZoneInfo.ConvertTimeFromUtc(dt, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"));
         }
     }
 }

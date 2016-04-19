@@ -33,18 +33,21 @@ namespace HyperVStatusMon.Controllers
         {
             DateTime last, timer;
             List<Status> statii;
+            bool hostMissed;
 
             _memoryCache.TryGetValue("LastUpdated", out last);
             _memoryCache.TryGetValue("Timer", out timer);
             _memoryCache.TryGetValue("Statii", out statii);
+            _memoryCache.TryGetValue("HostIntervalMissed", out hostMissed);
 
-            if (last != DateTime.MinValue) last = DateHelpers.GetLocalDateTime(last);
+            //if (last != DateTime.MinValue) last = DateHelpers.GetLocalDateTime(last);
             if (statii == null) statii = new List<Status>();
             int probsOutstanding = statii.Where(s => s.IsRecovered == false).Count();
 
             return new string[] {
                 "HyperV Replication Monitor",
                 String.Format("Last updated {0}", last == DateTime.MinValue ? "never" : last.ToString()),
+                hostMissed == false ? "Host is ok" : "Host did not communicate",
                 String.Format("{0} problems outstanding", probsOutstanding),
                 String.Format("Timer {0}", timer == DateTime.MinValue ? "off" : "on")
             };
@@ -61,12 +64,18 @@ namespace HyperVStatusMon.Controllers
             // do a timer for 15s more than configured minutes to see if the status update was NOT received from the host
             // we create the timer by adding an item to the cache and setting a callback on expiry           
             var options = new MemoryCacheEntryOptions()
-                .SetSlidingExpiration(TimeSpan.FromSeconds((_config.Replication.HostNonCommunicationThresholdMins * 60) + 15))
+                .SetAbsoluteExpiration(DateTimeOffset.UtcNow.AddSeconds((_config.Replication.HostNonCommunicationThresholdMins * 60) + 15))
                 .RegisterPostEvictionCallback(
                 (echoKey, value, reason, substate) =>
                 {
                     if (reason == EvictionReason.Expired)
-                        NotificationHelpers.SendEmail(String.Format("Host has not sent an update since {0}. Threshold is {1} mins.", value, _config.Replication.LastReplicationThresholdMins), _config.Email);
+                    {
+                        bool hostMissed;
+                        _memoryCache.TryGetValue("HostIntervalMissed", out hostMissed);
+                        DateTime dt = DateHelpers.GetLocalDateTime((DateTime)value);
+                        if (hostMissed == false) NotificationHelpers.SendEmail(String.Format("Primary host has not sent an update since {0}. Threshold is {1} mins.", dt.ToString(), _config.Replication.HostNonCommunicationThresholdMins), _config.Email);
+                        _memoryCache.Set("HostIntervalMissed", true, new MemoryCacheEntryOptions().SetPriority(CacheItemPriority.NeverRemove));
+                    }
                 });
             _memoryCache.Set("Timer", DateTime.Now, options);
             _memoryCache.Set("LastUpdated", DateTime.Now, new MemoryCacheEntryOptions().SetPriority(CacheItemPriority.NeverRemove));

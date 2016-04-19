@@ -39,7 +39,15 @@ The notification structure uses "Problem" and "Recovery" logic. So you are only 
 	c. Set up the email subject as well as from and to addresses for your monitoring needs.
 3. Build and publish the app to Azure or your preferred location. You can do this in Visual Studio 2015 (Community Edition is free!) or using the [dnx command prompt](https://docs.asp.net/en/latest/dnx/commands.html "dnx").
 4. Edit the 'PostReplicationStatusHttp.ps1' file (or PostReplicationStatusHttps.ps1 if you plan to use HTTPS with a self-signed certificate). You only need to set the URI parameter for the web application you set up in step 3.
-5. Copy the edited Powershell script to the Hyper-V host (or a machine that has permissions to access Replication statistics). 
+5. The host will write a new entry into the Application log on the host if there are any issues connecting to the web API. In order to do this you need to add a new "Source" for this log using Powershell (run as Administrator):
+
+		New-EventLog –LogName Application –Source "Hyper-V Replication Monitor"
+
+	You can easily view these with Event Viewer or this Powershell script:
+
+		Get-EventLog -LogName Application -Source "Hyper-V Replication Monitor"
+
+6. Copy the edited Powershell script to the Hyper-V host (or a machine that has permissions to access Replication statistics). 
 
 	If you are running the script from another machine than the primary replication host, then you will have to tell the script what server the primary is on:
 
@@ -49,7 +57,7 @@ The notification structure uses "Problem" and "Recovery" logic. So you are only 
 		$json = Measure-VMReplication -ComputerName {primary-server-name} | ConvertTo-Json -Compress
 
 	You can test this script by running it with appropriate permissions in Powershell. In your Powershell test, you will see the Response data which shows a 200-OK status if it submitted successfully. Under "Content", you will see "ok-{number of VMs checked}-{number of problems found}" to tell you what was processed and the outcome of the status condition logic. 
-6. Set the script to run on an interval using Task Scheduler > Add a new task. 
+7. Set the script to run on an interval using Task Scheduler > Add a new task. 
 
 	You can open Task Scheduler on a remote machine by right-clicking Task Scheduler (local) and select "Connect to a remote computer". If you have problems with connecting, it is likely your firewall preventing it - try running this in Powershell: 
 
