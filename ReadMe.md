@@ -38,8 +38,7 @@ The notification structure uses "Problem" and "Recovery" logic. So you are only 
 
 	c. Set up the email subject as well as from and to addresses for your monitoring needs.
 3. Build and publish the app to Azure or your preferred location. You can do this in Visual Studio 2015 (Community Edition is free!) or using the [dnx command prompt](https://docs.asp.net/en/latest/dnx/commands.html "dnx").
-4. Edit the 'PostReplicationStatusHttp.ps1' file (or PostReplicationStatusHttps.ps1 if you plan to use HTTPS with a self-signed certificate). You only need to set the URI parameter for the web application you set up in step 3.
-5. The host will write a new entry into the Application log on the host if there are any issues connecting to the web API. In order to do this you need to add a new "Source" for this log using Powershell (run as Administrator):
+4. The host will write a new entry into the Application log on the host if there are any issues connecting to the web API. In order to do this you need to add a new "Source" for this log using Powershell (run as Administrator):
 
 		New-EventLog –LogName Application –Source "Hyper-V Replication Monitor"
 
@@ -47,6 +46,7 @@ The notification structure uses "Problem" and "Recovery" logic. So you are only 
 
 		Get-EventLog -LogName Application -Source "Hyper-V Replication Monitor"
 
+4. Edit the 'PostReplicationStatusHttp.ps1' file (or PostReplicationStatusHttps.ps1 if you plan to use HTTPS with a self-signed certificate). You only need to set the $endPoint parameter for the web application URI you set up in step 3, and the $eventSource to the "Source" string you set up in step 4.
 6. Copy the edited Powershell script to the Hyper-V host (or a machine that has permissions to access Replication statistics). 
 
 	If you are running the script from another machine than the primary replication host, then you will have to tell the script what server the primary is on:
