@@ -40,7 +40,7 @@ namespace HyperVStatusMon.Controllers
             _memoryCache.TryGetValue("Statii", out statii);
             _memoryCache.TryGetValue("HostIntervalMissed", out hostMissed);
 
-            //if (last != DateTime.MinValue) last = DateHelpers.GetLocalDateTime(last);
+            if (last != DateTime.MinValue) last = DateHelpers.GetLocalDateTime(last);
             if (statii == null) statii = new List<Status>();
             int probsOutstanding = statii.Where(s => s.IsRecovered == false).Count();
 
@@ -48,7 +48,7 @@ namespace HyperVStatusMon.Controllers
                 "HyperV Replication Monitor",
                 String.Format("Last updated {0}", last == DateTime.MinValue ? "never" : last.ToString()),
                 hostMissed == false ? "Host is ok" : "Host did not communicate",
-                String.Format("{0} problems outstanding", probsOutstanding),
+                String.Format("{0} problem{1} outstanding", probsOutstanding, probsOutstanding == 1 ? "" : "s"),
                 String.Format("Timer {0}", timer == DateTime.MinValue ? "off" : "on")
             };
         }
@@ -80,8 +80,7 @@ namespace HyperVStatusMon.Controllers
             _memoryCache.Set("Timer", DateTime.Now, options);
             _memoryCache.Set("LastUpdated", DateTime.Now, new MemoryCacheEntryOptions().SetPriority(CacheItemPriority.NeverRemove));
 
-            // return ok-{number of VMs processed}-{number of issues found}
-            return String.Format("ok-{0}-{1}", jsonData.Count(), numProblems);
+            return String.Format("Host ok. {0} VM{1} checked. {2} problem{3} found.", jsonData.Count(), jsonData.Count() == 1 ? "" : "s", numProblems, numProblems == 1 ? "" : "s");
         }
 
     }

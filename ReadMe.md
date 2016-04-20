@@ -56,7 +56,7 @@ The notification structure uses "Problem" and "Recovery" logic. So you are only 
 		To:
 		$json = Measure-VMReplication -ComputerName {primary-server-name} | ConvertTo-Json -Compress
 
-	You can test this script by running it with appropriate permissions in Powershell. In your Powershell test, you will see the Response data which shows a 200-OK status if it submitted successfully. Under "Content", you will see "ok-{number of VMs checked}-{number of problems found}" to tell you what was processed and the outcome of the status condition logic. 
+	You can test this script by running it with appropriate permissions in Powershell. In your Powershell test, you will see the Response data which shows a 200-OK status if it submitted successfully. Under "Content", you will see "Host ok. {x} VMs checked. {y} problems found." to tell you what was processed and the outcome of the status condition logic. 
 7. Set the script to run on an interval using Task Scheduler > Add a new task. 
 
 	You can open Task Scheduler on a remote machine by right-clicking Task Scheduler (local) and select "Connect to a remote computer". If you have problems with connecting, it is likely your firewall preventing it - try running this in Powershell: 
