@@ -39,8 +39,15 @@ namespace HyperVStatusMon
                     Enum.TryParse((string)o["ReplicationState"], out state);
                     ReplicationHelpers.ConditionalAddStatus(state != ReplicationState.Replicating, ref statii, vm, "ReplicationState", String.Format("Replication State is {0}", state.ToString()));
 
-                    int latency = (int)o["AverageReplicationLatency"]["TotalSeconds"];
-                    ReplicationHelpers.ConditionalAddStatus(latency > repSettings.LatencyThresholdSeconds, ref statii, vm, "AverageReplicationLatency", String.Format("Avg latency {0} above threshold of {1}", latency, repSettings.LatencyThresholdSeconds));
+                    if (o["AverageReplicationLatency"].HasValues)
+                    {
+                        int latency = (int)o["AverageReplicationLatency"]["TotalSeconds"];
+                        ReplicationHelpers.ConditionalAddStatus(latency > repSettings.LatencyThresholdSeconds, ref statii, vm, "AverageReplicationLatency", String.Format("Average latency {0} above threshold of {1}", latency, repSettings.LatencyThresholdSeconds));
+                    }
+                    else
+                    {
+                        ReplicationHelpers.ConditionalAddStatus(true, ref statii, vm, "AverageReplicationLatency", String.Format("Average latency is null indicating replication has not occurred in a while"));
+                    }
 
                     double diffMins = DateTime.Now.Subtract((DateTime)o["LastReplicationTime"]).TotalMinutes;
                     ReplicationHelpers.ConditionalAddStatus(diffMins > repSettings.LastReplicationThresholdMins, ref statii, vm, "LastReplicationTime", String.Format("Last replication {0} mins ago above threshold of {1} mins", Math.Round(diffMins), repSettings.LastReplicationThresholdMins));
@@ -76,6 +83,9 @@ namespace HyperVStatusMon
             }
             catch (Exception ex)
             {
+                string msg = $"ReplicationHelpers.DoStatusChecks exception:<br /><br />{ex}";
+                await NotificationHelpers.SendEmail(msg, emailSettings);
+
                 return -1;
             }
         }
