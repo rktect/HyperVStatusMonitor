@@ -58,10 +58,17 @@ namespace HyperVStatusMon
                     await client.SendAsync(emailMessage).ConfigureAwait(false);
                     await client.DisconnectAsync(true).ConfigureAwait(false);
                 }
+
                 return "ok";
+            }
+            catch (SmtpProtocolException ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex);
+                return ex.ToString();
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine(ex);
                 return ex.ToString();
             }
         }

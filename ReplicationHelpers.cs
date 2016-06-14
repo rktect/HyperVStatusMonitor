@@ -46,11 +46,18 @@ namespace HyperVStatusMon
                     }
                     else
                     {
-                        ReplicationHelpers.ConditionalAddStatus(true, ref statii, vm, "AverageReplicationLatency", String.Format("Average latency is null indicating replication has not occurred in a while"));
+                        ReplicationHelpers.ConditionalAddStatus(true, ref statii, vm, "AverageReplicationLatency", "Average latency is null indicating replication has not occurred in a while");
                     }
 
-                    double diffMins = DateTime.Now.Subtract((DateTime)o["LastReplicationTime"]).TotalMinutes;
-                    ReplicationHelpers.ConditionalAddStatus(diffMins > repSettings.LastReplicationThresholdMins, ref statii, vm, "LastReplicationTime", String.Format("Last replication {0} mins ago above threshold of {1} mins", Math.Round(diffMins), repSettings.LastReplicationThresholdMins));
+                    DateTime lastReplication;
+                    if (DateTime.TryParse(o["LastReplicationTime"].ToString(), out lastReplication))
+                    {
+                        double diffMins = DateTime.Now.Subtract(lastReplication).TotalMinutes;
+                        ReplicationHelpers.ConditionalAddStatus(diffMins > repSettings.LastReplicationThresholdMins, ref statii, vm, "LastReplicationTime", String.Format("Last replication {0} mins ago above threshold of {1} mins", Math.Round(diffMins), repSettings.LastReplicationThresholdMins));
+                    } else
+                    {
+                        ReplicationHelpers.ConditionalAddStatus(true, ref statii, vm, "LastReplicationTime", "Last Replication Time is null indicating replication has not occurred in a while");
+                    }
 
                     int missedCount = (int)o["MissedReplicationCount"];
                     ReplicationHelpers.ConditionalAddStatus(missedCount > repSettings.MissedThreshold, ref statii, vm, "MissedReplicationCount", String.Format("Missed {0} replications above threshold of {1}", missedCount, repSettings.MissedThreshold));
