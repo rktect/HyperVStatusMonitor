@@ -88,3 +88,4 @@ Tested with Hyper-V Server 2012 R1 and R2, Powershell 3+, Azure App Service and 
 ## Future Features ##
 
 - Ability to kick off an unplanned failover to the replica server for all VMs.
+- Update to latest .NET core
